@@ -53,10 +53,10 @@ def open_addAnimal_inExist():
 
     def save_data():
         # Obtener los valores ingresados en los campos de entrada de texto
-        animalSQL = entry_animal.get()
-        sintomasSQL = entry_sintomas.get()
-        enfermedadSQL = entry_enfermedad.get() 
-        medicinaSQL = entry_medicina.get()
+        animalSQL = entry_animal.get().lower()
+        sintomasSQL = entry_sintomas.get().lower()
+        enfermedadSQL = entry_enfermedad.get().lower() 
+        medicinaSQL = entry_medicina.get().lower() 
         if animalSQL and sintomasSQL and enfermedadSQL and medicinaSQL:
 
             nombre_animal= animalSQL
@@ -145,10 +145,10 @@ def open_addAnimal():
     def save_data():
         #backend
         # Obtener los valores ingresados en los campos de entrada de texto
-        animalSQL = entry_animal.get()
-        sintomasSQL = entry_sintomas.get()
-        enfermedadSQL = entry_enfermedad.get() 
-        medicinaSQL = entry_medicina.get()
+        animalSQL = entry_animal.get().lower()
+        sintomasSQL = entry_sintomas.get().lower()
+        enfermedadSQL = entry_enfermedad.get().lower()
+        medicinaSQL = entry_medicina.get().lower()
         if animalSQL and sintomasSQL and enfermedadSQL and medicinaSQL:
             # Hacer algo con los datos guardados en las variables (por ejemplo, imprimirlos)
             #sql para añadir al animal
@@ -234,40 +234,230 @@ def openAskAnimalsAndSicks():
     Ask_animals_and_sicks_App.geometry(f"{screen_width}x{screen_height}+0+0")
     buttonBack = customtkinter.CTkButton(master=Ask_animals_and_sicks_App, text="Regresa", command=backMain3)
     buttonBack.place(relx=0.05, rely=0.05, anchor=tkinter.CENTER)
+    animal = customtkinter.CTkLabel(master=Ask_animals_and_sicks_App, text="Animal que busca:")
+    animal.place(relx=0.2, rely=0.2, anchor=tkinter.CENTER)
+    entry_animal = customtkinter.CTkEntry(master=Ask_animals_and_sicks_App)
+    entry_animal.place(relx=0.4, rely=0.2, anchor=tkinter.CENTER)
+    enfermedad = customtkinter.CTkLabel(master=Ask_animals_and_sicks_App, text="Enfermedad del animal: ")
+    enfermedad.place(relx=0.2, rely=0.3, anchor=tkinter.CENTER)
+    entry_enfermedad = customtkinter.CTkEntry(master=Ask_animals_and_sicks_App)
+    entry_enfermedad.place(relx=0.4, rely=0.3, anchor=tkinter.CENTER)
+
+
+
+    def showTable(id_animal, id_enfermedad):
+        Ask_animals_and_sicks_App.destroy()
+        global show_table_app
+        show_table_app = tkinter.Tk()
+        show_table_app.title("Información especifica")
+        show_table_app.configure(background="#6C737E")  # Cambiar el fondo de la ventana
+
+        screen_width = show_table_app.winfo_screenwidth()
+        screen_height = show_table_app.winfo_screenheight()
+        show_table_app.geometry(f"{screen_width}x{screen_height}+200+0")
+        buttonBack = tkinter.Button(master=show_table_app, text="Regresa", command=backToSicksAndAnimal)
+        buttonBack.place(relx=0.05, rely=0.05, anchor=tkinter.CENTER)
+
+        # Configurar estilo personalizado
+        style = ttk.Style()
+        style.configure("Custom.Treeview", background="#000000", foreground="#ffffff", fieldbackground="#1f497d")
+        style.configure("Custom.Treeview.Heading", background="#000000", foreground="#ffffff", font=("Arial", 10, "bold"))
+
+        # Cambiar el estilo predeterminado de ttk
+        style.theme_use("default")  # Puedes probar diferentes estilos (clam, alt, default, etc.)
+
+        table = ttk.Treeview(show_table_app, columns=("Animales", "Sintomas", "Enfermedades", "Medicinas"), style="Custom.Treeview")
+
+        # Configurar encabezados de columna
+        table.heading("Animales", text="Animales", anchor="center")
+        table.heading("Sintomas", text="Sintomas", anchor="center")
+        table.heading("Enfermedades", text="Enfermedades", anchor="center")
+        table.heading("Medicinas", text="Medicinas", anchor="center")
+
+        # Configurar alineación de las columnas
+        table.column("Animales", anchor="center")  # Alineación al centro
+        table.column("Sintomas", anchor="center")  # Alineación al centro
+        table.column("Enfermedades", anchor="center")  # Alineación al centro
+        table.column("Medicinas", anchor="center")  # Alineación al centro
+
+        # Agregar datos a la tabla
+        query = """
+                    SELECT a.Animal, s.Sintomas, e.Enfermedad, m.Medicina
+                    FROM animales AS a
+                    JOIN sintomas AS s ON a.ID_animal = s.ID_animal
+                    JOIN enfermedades AS e ON s.ID_enfermedad = e.ID_enfermedad
+                    JOIN medicinas AS m ON e.ID_medicina = m.ID_medicina
+                    WHERE a.ID_animal = %s and s.ID_enfermedad= %s
+                """
+        mycursor.execute(query, (id_animal, id_enfermedad))
+        for i in mycursor:
+            table.insert("", 0, values=i)
+
+        # Aplicar estilo personalizado a la tabla
+        table.configure(style="Custom.Treeview")
+
+        table.pack()
+
+        show_table_app.mainloop()
+
+
+    def search():
+        animalSearchSQL = entry_animal.get()
+        enfermedadSearchSQL = entry_enfermedad.get()
+        if enfermedadSearchSQL and animalSearchSQL:
+            nombre_animal = animalSearchSQL
+
+            # Realizar la consulta para obtener el ID del animal por su nombre
+            query = "SELECT ID_animal FROM animales WHERE Animal = %s"
+            mycursor.execute(query, (nombre_animal,))
+            result1 = mycursor.fetchone()
+
+
+            nombre_enfermedad = enfermedadSearchSQL
+
+            # Realizar la consulta para obtener el ID del animal por su nombre
+            query = "SELECT ID_enfermedad FROM enfermedades WHERE enfermedad = %s"
+            mycursor.execute(query, (nombre_enfermedad,))
+            result2 = mycursor.fetchone()
+
+
+            if result1 and result2:
+                id_animal = result1[0]
+                id_enfermedad = result2[0]
+                showTable(id_animal, id_enfermedad)
+                
+                
+            else:
+                info = customtkinter.CTkLabel(master=Ask_animals_and_sicks_App, text="Error no existe un animal o enfermedad con esos nombres")
+                info.place(relx=0.4, rely=0.6, anchor=tkinter.CENTER)
+                Ask_animals_and_sicks_App.after(2000, lambda: info.destroy())
+               
+            
+            
+            
+        else:
+            info = customtkinter.CTkLabel(master=Ask_animals_and_sicks_App, text="Error no a llenado todos los campos")
+            info.place(relx=0.4, rely=0.6, anchor=tkinter.CENTER)
+            Ask_animals_and_sicks_App.after(2000, lambda: info.destroy())
+
+        
+
+
+    botonBuscar = customtkinter.CTkButton(master=Ask_animals_and_sicks_App, text="Buscar",fg_color="green", command=search)
+    botonBuscar.place(relx=0.6, rely=0.6, anchor=tkinter.CENTER)
+
+
+
+
     Ask_animals_and_sicks_App.mainloop()
 
 def openAskAllAnimals():
     AppMain.destroy()
     global Ask_all_animals_App
-    Ask_all_animals_App = customtkinter.CTk()
+    Ask_all_animals_App = tkinter.Tk()
     Ask_all_animals_App.title("Informacion general")
+    Ask_all_animals_App.configure(background="#6C737E")  # Cambiar el fondo de la ventana
+
     screen_width = Ask_all_animals_App.winfo_screenwidth()
     screen_height = Ask_all_animals_App.winfo_screenheight()
-    Ask_all_animals_App.geometry(f"{screen_width}x{screen_height}+0+0")
-    buttonBack = customtkinter.CTkButton(master=Ask_all_animals_App, text="Regresa", command=backMain4)
+    Ask_all_animals_App.geometry(f"{screen_width}x{screen_height}+200+0")
+    buttonBack = tkinter.Button(master=Ask_all_animals_App, text="Regresa", command=backMain4)
     buttonBack.place(relx=0.05, rely=0.05, anchor=tkinter.CENTER)
-    print("xd")
 
+    # Configurar estilo personalizado
+    style = ttk.Style()
+    style.configure("Custom.Treeview", background="#000000", foreground="#ffffff", fieldbackground="#1f497d")
+    style.configure("Custom.Treeview.Heading", background="#000000", foreground="#ffffff", font=("Arial", 10, "bold"))
 
-    table = ttk.Treeview(Ask_all_animals_App, columns=("Animal", "Descripción", "Categoría"))
+    # Cambiar el estilo predeterminado de ttk
+    style.theme_use("default")  # Puedes probar diferentes estilos (clam, alt, default, etc.)
+
+    table = ttk.Treeview(Ask_all_animals_App, columns=("Animales", "Sintomas", "Enfermedades", "Medicinas"), style="Custom.Treeview")
+
     # Configurar encabezados de columna
-    table.heading("Animal", text="Animal")
-    table.heading("Descripción", text="Descripción")
-    table.heading("Categoría", text="Categoría")
+    table.heading("Animales", text="Animales", anchor="center")
+    table.heading("Sintomas", text="Sintomas", anchor="center")
+    table.heading("Enfermedades", text="Enfermedades", anchor="center")
+    table.heading("Medicinas", text="Medicinas", anchor="center")
+
+    # Configurar alineación de las columnas
+    table.column("Animales", anchor="center")  # Alineación al centro
+    table.column("Sintomas", anchor="center")  # Alineación al centro
+    table.column("Enfermedades", anchor="center")  # Alineación al centro
+    table.column("Medicinas", anchor="center")  # Alineación al centro
+
+    # Agregar datos a la tabla
+    mycursor.execute("SELECT a.Animal, s.Sintomas, e.Enfermedad, m.Medicina FROM animales AS a JOIN sintomas AS s ON  a.ID_animal = s.ID_animal JOIN enfermedades AS e ON s.ID_enfermedad = e.ID_enfermedad JOIN medicinas AS m ON m.ID_medicina = e.ID_medicina ORDER BY a.Animal ASC")
+    for i in mycursor:
+        table.insert("", 0, values=i)
+
+    # Aplicar estilo personalizado a la tabla
+    table.configure(style="Custom.Treeview")
+
     table.pack()
 
     Ask_all_animals_App.mainloop()
 
+
+
 def editData():
+    
+    def doubleClickTable(event):
+        claveVieja = str(table.item(table.selection())["values"][0])
+
+        nuevoAnimal = (0,str(table.item(table.selection())["text"]))
+        print(nuevoAnimal)
+
+       
     AppMain.destroy()
     global edit_data_App
-    edit_data_App = customtkinter.CTk()
+    edit_data_App = tkinter.Tk()
     edit_data_App.title("Modificando datos")
     screen_width = edit_data_App.winfo_screenwidth()
     screen_height = edit_data_App.winfo_screenheight()
-    edit_data_App.geometry(f"{screen_width}x{screen_height}+0+0")
-    buttonBack = customtkinter.CTkButton(master=edit_data_App, text="Regresa", command=backMain5)
+    edit_data_App.geometry(f"{screen_width}x{screen_height}+200+0")
+    buttonBack = tkinter.Button(master=edit_data_App, text="Regresa", command=backMain5)
     buttonBack.place(relx=0.05, rely=0.05, anchor=tkinter.CENTER)
+
+     # Configurar estilo personalizado
+    style = ttk.Style()
+    style.configure("Custom.Treeview", background="#000000", foreground="#ffffff", fieldbackground="#1f497d")
+    style.configure("Custom.Treeview.Heading", background="#000000", foreground="#ffffff", font=("Arial", 10, "bold"))
+
+    # Cambiar el estilo predeterminado de ttk
+    style.theme_use("default")  # Puedes probar diferentes estilos (clam, alt, default, etc.)
+
+    table = ttk.Treeview(edit_data_App, columns=("Animales", "Sintomas", "Enfermedades", "Medicinas", "Doble click para modificar"), style="Custom.Treeview")
+    
+
+    # Configurar encabezados de columna
+    table.bind("<Double-Button-1>", doubleClickTable)
+    table.heading("Animales", text="Animales", anchor="center")
+    table.heading("Sintomas", text="Sintomas", anchor="center")
+    table.heading("Enfermedades", text="Enfermedades", anchor="center")
+    table.heading("Medicinas", text="Medicinas", anchor="center")
+    table.heading("Doble click para modificar", text="Doble click para modificar", anchor="center")
+    
+
+    # Configurar alineación de las columnas
+    table.column("Animales", anchor="center")  # Alineación al centro
+    table.column("Sintomas", anchor="center")  # Alineación al centro
+    table.column("Enfermedades", anchor="center")  # Alineación al centro
+    table.column("Medicinas", anchor="center")  # Alineación al centro
+    
+
+    # Agregar datos a la tabla
+    
+    mycursor.execute("SELECT a.Animal, s.Sintomas, e.Enfermedad, m.Medicina FROM animales AS a JOIN sintomas AS s ON  a.ID_animal = s.ID_animal JOIN enfermedades AS e ON s.ID_enfermedad = e.ID_enfermedad JOIN medicinas AS m ON m.ID_medicina = e.ID_medicina ORDER BY a.Animal ASC")
+    for i in mycursor:
+        table.insert("", 0, values=i)
+       
+
+    # Aplicar estilo personalizado a la tabla
+    table.configure(style="Custom.Treeview")
+
+    table.pack()
+
     edit_data_App.mainloop()
 
 def deleteDataF():
@@ -309,6 +499,11 @@ def backMain5():
 def backMain6():
     delete_data_App.destroy()
     Main()
+def backToSicksAndAnimal():
+    show_table_app.destroy()
+    Main()
+
+    
 
 
 
