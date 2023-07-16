@@ -428,7 +428,54 @@ def editData():
             selectDataApp.destroy()
         def updateData():
 
-            pass
+            #obteniendo todos los ID de los valores de la tabla
+            query1= "SELECT ID_sintomas FROM sintomas WHERE Sintomas = %s"
+            mycursor.execute(query1,(sintomas_t,))
+            id_sintomas_t=mycursor.fetchone()
+           # query2 = "SELECT ID_animal FROM animales WHERE Animal = %s"
+           # mycursor.execute(query2,(animal_t,))
+           # id_animal_t_=mycursor.fetchone()
+            query3="SELECT ID_enfermedad FROM enfermedades WHERE Enfermedad = %s"
+            mycursor.execute(query3,(enfermedades_t,))
+            id_enfermedad_t = mycursor.fetchone()
+            query4="SELECT ID_medicina FROM medicinas WHERE Medicina = %s"
+            mycursor.execute(query4,(medicinas_t,))
+            id_medicina_t=mycursor.fetchone()
+
+            #primero update del animal tenemos que ver si al modificar cambia el nombre, si existe o no existe actuaremos segun el caso
+            animalSQL_t = entry_animal.get().lower()
+            sintomasSQL_t = entry_sintomas.get().lower()
+            enfermedadesSQL_t = entry_enfermedad.get().lower()
+            medicinasSQL_t = entry_medicina.get().lower()
+            if animalSQL_t and sintomasSQL_t and enfermedadesSQL_t and medicinasSQL_t:
+
+                query5="SELECT ID_animal FROM animales WHERE Animal = %s"
+                mycursor.execute(query5, (animalSQL_t, ))
+                result = mycursor.fetchone()
+                if result:
+                    #hacemos los update sin problemas debido a que el nombre del animal no cambia
+                    query6 = "UPDATE sintomas SET Sintomas = %s WHERE ID_sintomas = %s"
+                    id_sintomas_t = id_sintomas_t[0]
+                    mycursor.execute(query6,(sintomasSQL_t, id_sintomas_t))
+                    query7 = "UPDATE enfermedades SET Enfermedad = %s WHERE ID_enfermedad = %s"
+                    id_enfermedad_t = id_enfermedad_t[0]  # Extraer el valor de la tupla
+                    mycursor.execute(query7, (enfermedadesSQL_t, id_enfermedad_t))
+                    query8 = "UPDATE medicinas SET Medicina = %s WHERE ID_medicina = %s"
+                    id_medicina_t = id_medicina_t[0]  # Extraer el valor de la tupla
+                    mycursor.execute(query8, (medicinasSQL_t, id_medicina_t))
+                    mydbd.commit()
+                    info = customtkinter.CTkLabel(master=selectDataApp, text="Datos actualizados correctamente")
+                    info.place(relx=0.4, rely=0.6, anchor=tkinter.CENTER)
+                    selectDataApp.after(2000, lambda: info.destroy())
+                   # updateTable()
+                    
+                else:
+                    pass 
+            else:
+                info = customtkinter.CTkLabel(master=selectDataApp, text="Error no a llenado todos los campos")
+                info.place(relx=0.4, rely=0.6, anchor=tkinter.CENTER)
+                selectDataApp.after(2000, lambda: info.destroy())
+            
         def deleteData():
             pass
 
@@ -584,6 +631,11 @@ def backMain6():
 def backToSicksAndAnimal():
     show_table_app.destroy()
     Main()
+def updateTable():
+    edit_data_App.destroy()
+    selectDataApp.destroy()
+    Main()
+    
 
     
 
@@ -591,7 +643,7 @@ def backToSicksAndAnimal():
 
 def Main():
     #interfaz principal
-
+    
     #cargamos las imagenes
     AddImage = customtkinter.CTkImage(dark_image=Image.open(os.path.join("add_user_dark.png")), size=(20, 20))
     AskImage = customtkinter.CTkImage(dark_image=Image.open(os.path.join("chat_dark.png")), size=(20, 20))
