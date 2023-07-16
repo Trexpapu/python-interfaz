@@ -281,6 +281,7 @@ def openAskAnimalsAndSicks():
         table.column("Medicinas", anchor="center")  # Alineación al centro
 
         # Agregar datos a la tabla
+
         query = """
                     SELECT a.Animal, s.Sintomas, e.Enfermedad, m.Medicina
                     FROM animales AS a
@@ -290,8 +291,10 @@ def openAskAnimalsAndSicks():
                     WHERE a.ID_animal = %s and s.ID_enfermedad= %s
                 """
         mycursor.execute(query, (id_animal, id_enfermedad))
+        
         for i in mycursor:
             table.insert("", 0, values=i)
+       
 
         # Aplicar estilo personalizado a la tabla
         table.configure(style="Custom.Treeview")
@@ -324,7 +327,26 @@ def openAskAnimalsAndSicks():
             if result1 and result2:
                 id_animal = result1[0]
                 id_enfermedad = result2[0]
-                showTable(id_animal, id_enfermedad)
+
+                query = """
+                    SELECT a.Animal, s.Sintomas, e.Enfermedad, m.Medicina
+                    FROM animales AS a
+                    JOIN sintomas AS s ON a.ID_animal = s.ID_animal
+                    JOIN enfermedades AS e ON s.ID_enfermedad = e.ID_enfermedad
+                    JOIN medicinas AS m ON e.ID_medicina = m.ID_medicina
+                    WHERE a.ID_animal = %s and s.ID_enfermedad= %s
+                """
+                
+                mycursor.execute(query, (id_animal, id_enfermedad))
+                results = mycursor.fetchall()
+                if results:
+                    showTable(id_animal, id_enfermedad)
+                    
+                else:
+                    info = customtkinter.CTkLabel(master=Ask_animals_and_sicks_App, text="Error no existe un animal o enfermedad con esos nombres")
+                    info.place(relx=0.4, rely=0.6, anchor=tkinter.CENTER)
+                    Ask_animals_and_sicks_App.after(2000, lambda: info.destroy())
+                            
                 
                 
             else:
@@ -400,13 +422,73 @@ def openAskAllAnimals():
 
 
 
-def editData():
-    
-    def doubleClickTable(event):
-        claveVieja = str(table.item(table.selection())["values"][0])
+def editData(): 
+    def doubleClickTable(event): #funcion abre otra ventana para borrar o editar
+        def backToTable():
+            selectDataApp.destroy()
+        def updateData():
 
-        nuevoAnimal = (0,str(table.item(table.selection())["text"]))
-        print(nuevoAnimal)
+            pass
+        def deleteData():
+            pass
+
+        
+        
+        # Obtener todos los valores de la fila seleccionada
+        valoresFila = table.item(table.selection())["values"]
+        
+        
+        # Acceder a valores individuales de la fila seleccionada
+        global animal_t
+        global sintomas_t
+        global enfermedades_t
+        global medicinas_t
+        animal_t = valoresFila[0]
+        sintomas_t = valoresFila[1]
+        enfermedades_t = valoresFila[2]
+        medicinas_t = valoresFila[3]
+
+        global selectDataApp
+        selectDataApp = customtkinter.CTk()
+        selectDataApp.title("Modificando datos")
+        screen_width = selectDataApp.winfo_screenwidth()
+        screen_height = selectDataApp.winfo_screenheight()
+        selectDataApp.geometry(f"{screen_width}x{screen_height}+0+0")
+        buttonBack = customtkinter.CTkButton(master=selectDataApp, text="Regresa", command=backToTable)
+        buttonBack.place(relx=0.05, rely=0.05, anchor=tkinter.CENTER)
+        # Agregar etiquetas y campos de entrada de texto
+        animal = customtkinter.CTkLabel(master=selectDataApp, text="Animal:")
+        animal.place(relx=0.2, rely=0.2, anchor=tkinter.CENTER)
+        entry_animal = customtkinter.CTkEntry(master=selectDataApp)
+        entry_animal.place(relx=0.4, rely=0.2, anchor=tkinter.CENTER)
+
+        sintomas = customtkinter.CTkLabel(master=selectDataApp, text="Sintomas:")
+        sintomas.place(relx=0.2, rely=0.3, anchor=tkinter.CENTER)
+        entry_sintomas = customtkinter.CTkEntry(master=selectDataApp)
+        entry_sintomas.place(relx=0.4, rely=0.3, anchor=tkinter.CENTER)
+
+        enfermedad = customtkinter.CTkLabel(master=selectDataApp, text="Enfermedad:") 
+        enfermedad.place(relx=0.2, rely=0.4, anchor=tkinter.CENTER)
+        entry_enfermedad = customtkinter.CTkEntry(master=selectDataApp)
+        entry_enfermedad.place(relx=0.4, rely=0.4, anchor=tkinter.CENTER)
+
+        medicina = customtkinter.CTkLabel(master=selectDataApp, text="Medicina:")
+        medicina.place(relx=0.2, rely=0.5, anchor=tkinter.CENTER)
+        entry_medicina = customtkinter.CTkEntry(master=selectDataApp)
+        entry_medicina.place(relx=0.4, rely=0.5, anchor=tkinter.CENTER)
+        entry_animal.insert(0, animal_t)
+        entry_enfermedad.insert(0, enfermedades_t)
+        entry_sintomas.insert(0, sintomas_t)
+        entry_medicina.insert(0, medicinas_t)
+
+        #pendiente agregar fotos a los botones
+        modifyButton = customtkinter.CTkButton(master=selectDataApp, text="Actualizar",fg_color="green", command=updateData)
+        modifyButton.place(relx=0.6, rely=0.6, anchor=tkinter.CENTER)
+        deleteButton = customtkinter.CTkButton(master=selectDataApp, text="Borrar", fg_color="red", command=deleteData)
+        deleteButton.place(relx=0.7, rely=0.6, anchor=tkinter.CENTER)
+        
+
+        selectDataApp.mainloop()
 
        
     AppMain.destroy()
@@ -427,7 +509,7 @@ def editData():
     # Cambiar el estilo predeterminado de ttk
     style.theme_use("default")  # Puedes probar diferentes estilos (clam, alt, default, etc.)
 
-    table = ttk.Treeview(edit_data_App, columns=("Animales", "Sintomas", "Enfermedades", "Medicinas", "Doble click para modificar"), style="Custom.Treeview")
+    table = ttk.Treeview(edit_data_App, columns=("Animales", "Sintomas", "Enfermedades", "Medicinas", "Doble click en la tabla"), style="Custom.Treeview")
     
 
     # Configurar encabezados de columna
@@ -436,7 +518,7 @@ def editData():
     table.heading("Sintomas", text="Sintomas", anchor="center")
     table.heading("Enfermedades", text="Enfermedades", anchor="center")
     table.heading("Medicinas", text="Medicinas", anchor="center")
-    table.heading("Doble click para modificar", text="Doble click para modificar", anchor="center")
+    table.heading("Doble click en la tabla", text="Doble click en la tabla", anchor="center")
     
 
     # Configurar alineación de las columnas
@@ -537,7 +619,7 @@ def Main():
     askAllAnimals = customtkinter.CTkButton(master= AppMain, text="Ver todos los datos", fg_color="green", image=AskImage, command=openAskAllAnimals)
     askAllAnimals.place(relx=0.3, rely=0.3, anchor=tkinter.CENTER)
 
-    modifyData = customtkinter.CTkButton(master= AppMain, text = "Modificar datos", fg_color="royalblue", image=EditImage, command=editData)
+    modifyData = customtkinter.CTkButton(master= AppMain, text = "Modificar o eliminar datos", fg_color="royalblue", image=EditImage, command=editData)
     modifyData.place(relx=0.45, rely=0.2, anchor=tkinter.CENTER)
 
     deleteData = customtkinter.CTkButton(master= AppMain, text = "Borrar datos", fg_color="red", image=DeleteImage, command= deleteDataF)
