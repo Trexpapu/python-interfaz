@@ -467,9 +467,12 @@ def editData():
                     info = customtkinter.CTkLabel(master=selectDataApp, text="Datos actualizados correctamente")
                     info.place(relx=0.4, rely=0.6, anchor=tkinter.CENTER)
                     selectDataApp.after(2000, lambda: info.destroy())
-                   # updateTable()
+                    #llamamos a la funcion update table despues de dos segundos
+                    selectDataApp.after(2000, lambda: updateTable())
                     
                 else:
+                    #tenemos que hacer el delete de los datos que fueron seleccionar y generar un nuevo miembro en la tabla
+                    
                     pass 
             else:
                 info = customtkinter.CTkLabel(master=selectDataApp, text="Error no a llenado todos los campos")
