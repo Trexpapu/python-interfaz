@@ -13,102 +13,13 @@ customtkinter.set_default_color_theme("blue")
 
 #aqui agregamos las otras intefaces de las opciones
 
-#añadir datos a un animal ya existente//////////////
-def open_addAnimal_inExist(): 
-    #AppMain.withdraw() #oculta la ventana principal en vez de destruirla para reinvocarla
-    AppMain.destroy()
-    global Add_animal_inExist_App #variable global de la ventana para destruirla en otra funcion
-    Add_animal_inExist_App = customtkinter.CTk()#creamos ventana
-    #agregamos esta parte para que la ventana aparezca centrada y grande sin ningun problema
-    Add_animal_inExist_App.title("Agregando datos a animal existente")
-    screen_width = Add_animal_inExist_App.winfo_screenwidth()
-    screen_height = Add_animal_inExist_App.winfo_screenheight()
-    Add_animal_inExist_App.geometry(f"{screen_width}x{screen_height}+0+0")
-    buttonBack = customtkinter.CTkButton(master= Add_animal_inExist_App, text="Regresa", command=backMain1)
-    buttonBack.place(relx=0.05, rely=0.05, anchor=tkinter.CENTER)
 
-
-
-     # Agregar etiquetas y campos de entrada de texto
-    animal = customtkinter.CTkLabel(master=Add_animal_inExist_App, text="Nombre del animal:")
-    animal.place(relx=0.2, rely=0.2, anchor=tkinter.CENTER)
-    entry_animal = customtkinter.CTkEntry(master=Add_animal_inExist_App)
-    entry_animal.place(relx=0.4, rely=0.2, anchor=tkinter.CENTER)
-
-    sintomas = customtkinter.CTkLabel(master=Add_animal_inExist_App, text="Sintomas que va a agregar:")
-    sintomas.place(relx=0.2, rely=0.3, anchor=tkinter.CENTER)
-    entry_sintomas = customtkinter.CTkEntry(master=Add_animal_inExist_App)
-    entry_sintomas.place(relx=0.4, rely=0.3, anchor=tkinter.CENTER)
-
-    enfermedad = customtkinter.CTkLabel(master=Add_animal_inExist_App, text="Enfermedad que va a agregar:") 
-    enfermedad.place(relx=0.2, rely=0.4, anchor=tkinter.CENTER)
-    entry_enfermedad = customtkinter.CTkEntry(master=Add_animal_inExist_App)
-    entry_enfermedad.place(relx=0.4, rely=0.4, anchor=tkinter.CENTER)
-
-    medicina = customtkinter.CTkLabel(master=Add_animal_inExist_App, text="Medicina que va a agregar:")
-    medicina.place(relx=0.2, rely=0.5, anchor=tkinter.CENTER)
-    entry_medicina = customtkinter.CTkEntry(master=Add_animal_inExist_App)
-    entry_medicina.place(relx=0.4, rely=0.5, anchor=tkinter.CENTER)
-
-
-    def save_data():
-        # Obtener los valores ingresados en los campos de entrada de texto
-        animalSQL = entry_animal.get().lower()
-        sintomasSQL = entry_sintomas.get().lower()
-        enfermedadSQL = entry_enfermedad.get().lower() 
-        medicinaSQL = entry_medicina.get().lower() 
-        if animalSQL and sintomasSQL and enfermedadSQL and medicinaSQL:
-
-            nombre_animal= animalSQL
-            # Realizar la consulta para obtener el ID del animal por su nombre
-            query = "SELECT ID_animal FROM animales WHERE Animal = %s"
-            mycursor.execute(query, (nombre_animal,))
-            result = mycursor.fetchone()
-            if result:
-                id_animal=result[0]
-                sintomas = sintomasSQL
-                enfermedad = enfermedadSQL
-                medicina = medicinaSQL
-                mycursor.execute("INSERT INTO medicinas(Medicina) VALUES(%s)", (medicina,))
-                id_medicina = mycursor.lastrowid
-                mycursor.execute("INSERT INTO enfermedades(Enfermedad, ID_medicina) VALUES(%s, %s)", (enfermedad, id_medicina))
-                id_enfermedad = mycursor.lastrowid
-                mycursor.execute("INSERT INTO sintomas(Sintomas, ID_animal, ID_enfermedad) VALUES(%s, %s, %s)", (sintomas, id_animal, id_enfermedad))
-                # Confirmar los cambios realizados en la base de datos
-                mydbd.commit()
-                info = customtkinter.CTkLabel(master=Add_animal_inExist_App, text="Datos enviados correctamente")
-                info.place(relx=0.4, rely=0.6, anchor=tkinter.CENTER)
-                Add_animal_inExist_App.after(2000, lambda: info.destroy())
-                
-                
-
-                
-
-            else:
-                info = customtkinter.CTkLabel(master=Add_animal_inExist_App, text="Error no existe un animal con ese nombre")
-                info.place(relx=0.4, rely=0.6, anchor=tkinter.CENTER)
-                Add_animal_inExist_App.after(2000, lambda: info.destroy())
-        else:
-            info = customtkinter.CTkLabel(master=Add_animal_inExist_App, text="Error no a llenado todos los campos")
-            info.place(relx=0.4, rely=0.6, anchor=tkinter.CENTER)
-            Add_animal_inExist_App.after(2000, lambda: info.destroy())
-           
-            
-
-
-
-    buttonGuardar = customtkinter.CTkButton(master=Add_animal_inExist_App, text="Guardar",fg_color="green", command=save_data)
-    buttonGuardar.place(relx=0.6, rely=0.6, anchor=tkinter.CENTER)
-
-    Add_animal_inExist_App.mainloop()
-
-
-    #añadir datos a un animal ya existente////////////////////////////
 
 
 #añadir animal///////////////////////////
 
 def open_addAnimal():
+    connect()
     AppMain.destroy()
     global Add_animal_App
     Add_animal_App = customtkinter.CTk()
@@ -164,9 +75,22 @@ def open_addAnimal():
                 result = mycursor.fetchone()
                 
                 if result:
-                    info = customtkinter.CTkLabel(master=Add_animal_App, text="Error ya existe un animal con ese nombre")
+
+                    id_animal=result[0]
+                    sintomas = sintomasSQL
+                    enfermedad = enfermedadSQL
+                    medicina = medicinaSQL
+                    mycursor.execute("INSERT INTO medicinas(Medicina) VALUES(%s)", (medicina,))
+                    id_medicina = mycursor.lastrowid
+                    mycursor.execute("INSERT INTO enfermedades(Enfermedad, ID_medicina) VALUES(%s, %s)", (enfermedad, id_medicina))
+                    id_enfermedad = mycursor.lastrowid
+                    mycursor.execute("INSERT INTO sintomas(Sintomas, ID_animal, ID_enfermedad) VALUES(%s, %s, %s)", (sintomas, id_animal, id_enfermedad))
+                    # Confirmar los cambios realizados en la base de datos
+                    mydbd.commit()
+                    info = customtkinter.CTkLabel(master=Add_animal_App, text="Datos enviados correctamente")
                     info.place(relx=0.4, rely=0.6, anchor=tkinter.CENTER)
                     Add_animal_App.after(2000, lambda: info.destroy())
+                    
 
                     
                 else:
@@ -191,6 +115,8 @@ def open_addAnimal():
                     info = customtkinter.CTkLabel(master=Add_animal_App, text="Datos enviados correctamente")
                     info.place(relx=0.4, rely=0.6, anchor=tkinter.CENTER)
                     Add_animal_App.after(2000, lambda: info.destroy())
+                    # Cerrar el cursor después de usarlo y conexion
+                    
                     
 
             except mysql.connector.IntegrityError:
@@ -225,6 +151,7 @@ def open_addAnimal():
 #añadir animal //////////////////////
 
 def openAskAnimalsAndSicks():
+    connect()
     AppMain.destroy()
     global Ask_animals_and_sicks_App
     Ask_animals_and_sicks_App = customtkinter.CTk()
@@ -295,7 +222,8 @@ def openAskAnimalsAndSicks():
         for i in mycursor:
             table.insert("", 0, values=i)
        
-
+        mycursor.close()
+        mydbd.close()
         # Aplicar estilo personalizado a la tabla
         table.configure(style="Custom.Treeview")
 
@@ -374,6 +302,7 @@ def openAskAnimalsAndSicks():
     Ask_animals_and_sicks_App.mainloop()
 
 def openAskAllAnimals():
+    connect()
     AppMain.destroy()
     global Ask_all_animals_App
     Ask_all_animals_App = tkinter.Tk()
@@ -412,6 +341,8 @@ def openAskAllAnimals():
     mycursor.execute("SELECT a.Animal, s.Sintomas, e.Enfermedad, m.Medicina FROM animales AS a JOIN sintomas AS s ON  a.ID_animal = s.ID_animal JOIN enfermedades AS e ON s.ID_enfermedad = e.ID_enfermedad JOIN medicinas AS m ON m.ID_medicina = e.ID_medicina ORDER BY a.Animal ASC")
     for i in mycursor:
         table.insert("", 0, values=i)
+    mycursor.close()
+    mydbd.close()
 
     # Aplicar estilo personalizado a la tabla
     table.configure(style="Custom.Treeview")
@@ -423,6 +354,7 @@ def openAskAllAnimals():
 
 
 def editData(): 
+    connect()
     def doubleClickTable(event): #funcion abre otra ventana para borrar o editar
         def backToTable():
             selectDataApp.destroy()
@@ -432,9 +364,6 @@ def editData():
             query1= "SELECT ID_sintomas FROM sintomas WHERE Sintomas = %s"
             mycursor.execute(query1,(sintomas_t,))
             id_sintomas_t=mycursor.fetchone()
-           # query2 = "SELECT ID_animal FROM animales WHERE Animal = %s"
-           # mycursor.execute(query2,(animal_t,))
-           # id_animal_t_=mycursor.fetchone()
             query3="SELECT ID_enfermedad FROM enfermedades WHERE Enfermedad = %s"
             mycursor.execute(query3,(enfermedades_t,))
             id_enfermedad_t = mycursor.fetchone()
@@ -442,7 +371,7 @@ def editData():
             mycursor.execute(query4,(medicinas_t,))
             id_medicina_t=mycursor.fetchone()
 
-            #primero update del animal tenemos que ver si al modificar cambia el nombre, si existe o no existe actuaremos segun el caso
+            #obteniendo los datos de los entry y pasandolos a minusculas
             animalSQL_t = entry_animal.get().lower()
             sintomasSQL_t = entry_sintomas.get().lower()
             enfermedadesSQL_t = entry_enfermedad.get().lower()
@@ -452,7 +381,7 @@ def editData():
                 query5="SELECT ID_animal FROM animales WHERE Animal = %s"
                 mycursor.execute(query5, (animalSQL_t, ))
                 result = mycursor.fetchone()
-                if result:
+                if result: #si ya existe un animal con ese nombre hacemos el update
                     #hacemos los update sin problemas debido a que el nombre del animal no cambia
                     query6 = "UPDATE sintomas SET Sintomas = %s WHERE ID_sintomas = %s"
                     id_sintomas_t = id_sintomas_t[0]
@@ -467,20 +396,85 @@ def editData():
                     info = customtkinter.CTkLabel(master=selectDataApp, text="Datos actualizados correctamente")
                     info.place(relx=0.4, rely=0.6, anchor=tkinter.CENTER)
                     selectDataApp.after(2000, lambda: info.destroy())
+                    mycursor.close()
+                    mydbd.close()
                     #llamamos a la funcion update table despues de dos segundos
                     selectDataApp.after(2000, lambda: updateTable())
                     
-                else:
+                else:#si hace modificacion del nombre por un animal que no exista en la tabla hacemos delete e instertamos nuevos miembros
                     #tenemos que hacer el delete de los datos que fueron seleccionar y generar un nuevo miembro en la tabla
+                    query9 = "DELETE FROM sintomas WHERE ID_sintomas = %s"
+                    id_sintomas_t = id_sintomas_t[0]
+                    mycursor.execute(query9, (id_sintomas_t, ))
+                    query10 = "DELETE FROM enfermedades WHERE ID_enfermedad = %s"
+                    id_enfermedad_t = id_enfermedad_t[0]  # Extraer el valor de la tupla
+                    mycursor.execute(query10, (id_enfermedad_t, ))
+                    query11 = "DELETE FROM medicinas WHERE ID_medicina = %s"
+                    id_medicina_t = id_medicina_t[0]  # Extraer el valor de la tupla
+                    mycursor.execute(query11, (id_medicina_t, ))
+
+                    animal = animalSQL_t
+                    sintomas = sintomasSQL_t
+                    enfermedad = enfermedadesSQL_t
+                    medicina = medicinasSQL_t
                     
-                    pass 
+                    # Insertar el nuevo animal en la base de datos
+                    mycursor.execute("INSERT INTO animales(Animal) VALUES(%s)", (animal,))
+                    id_animal = mycursor.lastrowid
+                    
+                    mycursor.execute("INSERT INTO medicinas(Medicina) VALUES(%s)", (medicina,))
+                    id_medicina = mycursor.lastrowid
+                    
+                    mycursor.execute("INSERT INTO enfermedades(Enfermedad, ID_medicina) VALUES(%s, %s)", (enfermedad, id_medicina))
+                    id_enfermedad = mycursor.lastrowid
+                    
+                    mycursor.execute("INSERT INTO sintomas(Sintomas, ID_animal, ID_enfermedad) VALUES(%s, %s, %s)", (sintomas, id_animal, id_enfermedad))
+                    
+                    # Confirmar los cambios realizados en la base de datos
+                    mydbd.commit()
+                    info = customtkinter.CTkLabel(master=selectDataApp, text="Datos actualizados correctamente")
+                    info.place(relx=0.4, rely=0.6, anchor=tkinter.CENTER)
+                    selectDataApp.after(2000, lambda: info.destroy())
+                    mycursor.close()
+                    mydbd.close()
+                    #llamamos a la funcion update table despues de dos segundos
+                    selectDataApp.after(2000, lambda: updateTable()) 
             else:
                 info = customtkinter.CTkLabel(master=selectDataApp, text="Error no a llenado todos los campos")
                 info.place(relx=0.4, rely=0.6, anchor=tkinter.CENTER)
                 selectDataApp.after(2000, lambda: info.destroy())
             
         def deleteData():
-            pass
+
+            #obteniendo todos los ID de los valores de la tabla para borrar solo lo seleccionado sin importar si modifica en los entry
+            query1= "SELECT ID_sintomas FROM sintomas WHERE Sintomas = %s"
+            mycursor.execute(query1,(sintomas_t,))
+            id_sintomas_t=mycursor.fetchone()
+            query3="SELECT ID_enfermedad FROM enfermedades WHERE Enfermedad = %s"
+            mycursor.execute(query3,(enfermedades_t,))
+            id_enfermedad_t = mycursor.fetchone()
+            query4="SELECT ID_medicina FROM medicinas WHERE Medicina = %s"
+            mycursor.execute(query4,(medicinas_t,))
+            id_medicina_t=mycursor.fetchone()
+            #realizamos los delete en las tablas
+            query9 = "DELETE FROM sintomas WHERE ID_sintomas = %s"
+            id_sintomas_t = id_sintomas_t[0] #extraer el valor de la tupla
+            mycursor.execute(query9, (id_sintomas_t, ))
+            query10 = "DELETE FROM enfermedades WHERE ID_enfermedad = %s"
+            id_enfermedad_t = id_enfermedad_t[0]  # Extraer el valor de la tupla
+            mycursor.execute(query10, (id_enfermedad_t, ))
+            query11 = "DELETE FROM medicinas WHERE ID_medicina = %s"
+            id_medicina_t = id_medicina_t[0]  # Extraer el valor de la tupla
+            mycursor.execute(query11, (id_medicina_t, ))
+            # Confirmar los cambios realizados en la base de datos
+            mydbd.commit()
+            info = customtkinter.CTkLabel(master=selectDataApp, text="Datos borrados correctamente")
+            info.place(relx=0.4, rely=0.6, anchor=tkinter.CENTER)
+            selectDataApp.after(2000, lambda: info.destroy())
+            mycursor.close()
+            mydbd.close()
+            #llamamos a la funcion update table despues de dos segundos
+            selectDataApp.after(2000, lambda: updateTable())
 
         
         
@@ -612,11 +606,10 @@ def deleteDataF():
 
 
 #aqui van todos los backmains
-def backMain1(): 
-   Add_animal_inExist_App.destroy()#destruimos ventana
-   #AppMain.deiconify()#vuelve a abrir la ventana indicada
-   Main()
+
 def backMain2():
+    mycursor.close()
+    mydbd.close()
     Add_animal_App.destroy()
     Main()
 def backMain3():
@@ -664,9 +657,6 @@ def Main():
     AddAnimal = customtkinter.CTkButton(master= AppMain, text="Añadir animal, sintomas, enfermedad y medicina",fg_color="purple",image=AddImage, command=open_addAnimal)
     AddAnimal.place(relx=0.1, rely=0.2, anchor=tkinter.CENTER)
 
-    AddDatesOfAnimal = customtkinter.CTkButton(master= AppMain, text="Añadir datos a un animal ya existente", fg_color="purple",image=AddImage, command=open_addAnimal_inExist)
-    AddDatesOfAnimal.place(relx=0.1, rely=0.3, anchor=tkinter.CENTER)
-
 
     askAnimalsAndSicks = customtkinter.CTkButton(master= AppMain, text="Ver animales y enfermedad", fg_color="green", image=AskImage, command=openAskAnimalsAndSicks)
     askAnimalsAndSicks.place(relx=0.3, rely=0.2, anchor=tkinter.CENTER)
@@ -688,10 +678,14 @@ def Main():
     AppMain.mainloop()
 
 
-#parte de conexion a sql
-mydbd= mysql.connector.connect(host="127.0.0.1", user="root", password="aPERRITOMAN12", database="mascotas")
-mycursor= mydbd.cursor()
-print("Conexion exitosa :D")
+def connect():
+
+    #parte de conexion a sql
+    global mydbd
+    global mycursor
+    mydbd= mysql.connector.connect(host="127.0.0.1", user="root", password="aPERRITOMAN12", database="mascotas")
+    mycursor= mydbd.cursor(buffered=True)
+    print("Conexion exitosa :D")
 
 
 Main()
