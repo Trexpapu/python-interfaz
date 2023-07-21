@@ -388,11 +388,20 @@ def editData():
                 result = mycursor.fetchone()
                 if result: #si ya existe un animal con ese nombre hacemos el update
                     #hacemos los update sin problemas debido a que el nombre del animal no cambia
-                    
+                    queryUpdateAnimal = "SELECT ID_animal FROM animales WHERE Animal = %s"
+                    mycursor.execute(queryUpdateAnimal, (animalSQL_t, )) 
+                    ID_update_animal = mycursor.fetchone()
+                    ID_update_animal = ID_update_animal[0] #extraer valor de la tupla
+                    id_sintomas_t = id_sintomas_t[0] #extaer valor de tupla
+
+                    #update nombre animal (en caso de que necesite redireccionar a otro ya existente)
+                    queryn = "UPDATE sintomas SET ID_animal = %s WHERE ID_sintomas = %s"
+                    mycursor.execute(queryn, (ID_update_animal, id_sintomas_t))
 
                     query6 = "UPDATE sintomas SET Sintomas = %s WHERE ID_sintomas = %s"
-                    id_sintomas_t = id_sintomas_t[0]
+                    
                     mycursor.execute(query6,(sintomasSQL_t, id_sintomas_t))
+
                     query7 = "UPDATE enfermedades SET Enfermedad = %s WHERE ID_enfermedad = %s"
                     id_enfermedad_t = id_enfermedad_t[0]  # Extraer el valor de la tupla
                     mycursor.execute(query7, (enfermedadesSQL_t, id_enfermedad_t))
@@ -565,6 +574,7 @@ def editData():
     screen_width = edit_data_App.winfo_screenwidth()
     screen_height = edit_data_App.winfo_screenheight()
     edit_data_App.geometry(f"{screen_width}x{screen_height}+200+0")
+    edit_data_App.configure(background="#6C737E")  
     buttonBack = tkinter.Button(master=edit_data_App, text="Regresa", command=backMain5)
     buttonBack.place(relx=0.05, rely=0.05, anchor=tkinter.CENTER)
 
@@ -667,7 +677,7 @@ def Main():
     AddImage = customtkinter.CTkImage(dark_image=Image.open(os.path.join("add_user_dark.png")), size=(20, 20))
     AskImage = customtkinter.CTkImage(dark_image=Image.open(os.path.join("chat_dark.png")), size=(20, 20))
     EditImage = customtkinter.CTkImage(dark_image=Image.open(os.path.join("edit.png")), size=(20,20))
-    DeleteImage = customtkinter.CTkImage(dark_image=Image.open(os.path.join("delete.jpg")), size=(20,20))
+    smartSearchImage = customtkinter.CTkImage(dark_image=Image.open(os.path.join("ai2.png")), size=(20,20))
 
     global AppMain
     AppMain = customtkinter.CTk()
@@ -690,8 +700,8 @@ def Main():
     modifyData = customtkinter.CTkButton(master= AppMain, text = "Modificar o eliminar datos", fg_color="royalblue", image=EditImage, command=editData)
     modifyData.place(relx=0.45, rely=0.2, anchor=tkinter.CENTER)
 
-    deleteData = customtkinter.CTkButton(master= AppMain, text = "Borrar datos", fg_color="red", image=DeleteImage, command= deleteDataF)
-    deleteData.place(relx=0.45, rely=0.3, anchor=tkinter.CENTER)
+    smartSearch = customtkinter.CTkButton(master= AppMain, text = "Busqueda inteligente ", fg_color="orange", image=smartSearchImage, command= deleteDataF)
+    smartSearch.place(relx=0.45, rely=0.3, anchor=tkinter.CENTER)
     
     #imagen de fondo 
     bg_image = customtkinter.CTkImage(Image.open( "logo1.png"),
