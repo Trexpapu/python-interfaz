@@ -377,6 +377,7 @@ def editData():
             enfermedadesSQL_t = entry_enfermedad.get().lower()
             medicinasSQL_t = entry_medicina.get().lower()
             if animalSQL_t and sintomasSQL_t and enfermedadesSQL_t and medicinasSQL_t:
+                #Viendo si cambio el nombre del animal o no
 
                 query5="SELECT ID_animal FROM animales WHERE Animal = %s"
                 mycursor.execute(query5, (animalSQL_t, ))
@@ -447,24 +448,39 @@ def editData():
         def deleteData():
 
             #obteniendo todos los ID de los valores de la tabla para borrar solo lo seleccionado sin importar si modifica en los entry
+            query0 = "SELECT ID_animal FROM animales WHERE Animal = %s"
+            mycursor.execute(query0,(animal_t,))
+            id_animal_t = mycursor.fetchone()
             query1= "SELECT ID_sintomas FROM sintomas WHERE Sintomas = %s"
             mycursor.execute(query1,(sintomas_t,))
             id_sintomas_t=mycursor.fetchone()
             query3="SELECT ID_enfermedad FROM enfermedades WHERE Enfermedad = %s"
             mycursor.execute(query3,(enfermedades_t,))
             id_enfermedad_t = mycursor.fetchone()
-            query4="SELECT ID_medicina FROM medicinas WHERE Medicina = %s"
+            #prueba de delete buscando el id_medicina
+            query4="SELECT ID_medicina FROM enfermedades WHERE Enfermedad = %s"
             mycursor.execute(query4,(medicinas_t,))
             id_medicina_t=mycursor.fetchone()
-            #realizamos los delete en las tablas
-            query9 = "DELETE FROM sintomas WHERE ID_sintomas = %s"
+            
+
+            
+            #pendiente realizar pruebas de deletes cuando hay sintomas con el mismo texto, revisar porque noo se puede realizar el delete del update
             id_sintomas_t = id_sintomas_t[0] #extraer el valor de la tupla
-            mycursor.execute(query9, (id_sintomas_t, ))
-            query10 = "DELETE FROM enfermedades WHERE ID_enfermedad = %s"
-            id_enfermedad_t = id_enfermedad_t[0]  # Extraer el valor de la tupla
-            mycursor.execute(query10, (id_enfermedad_t, ))
-            query11 = "DELETE FROM medicinas WHERE ID_medicina = %s"
+            id_animal_t = id_animal_t[0] #extraer valor de la tupla
             id_medicina_t = id_medicina_t[0]  # Extraer el valor de la tupla
+            id_enfermedad_t = id_enfermedad_t[0]  # Extraer el valor de la tupla
+            #haciendo el select de id_medicina desde la tabla enfermedades
+            queryMedicina = "SELECT ID_medicina FROM enfermedades WHERE ID_medicina = %s"
+            mycursor.execute(queryMedicina, (id_medicina_t,))
+            id_medicina_t = mycursor.fetchone() 
+
+            #haciendo los deletes
+            query9 = "DELETE FROM sintomas WHERE ID_sintomas = %s and ID_animal = %s"
+            mycursor.execute(query9, (id_sintomas_t, id_animal_t)) 
+            query10 = "DELETE FROM enfermedades WHERE ID_enfermedad = %s and ID_medicina = %s"
+            
+            mycursor.execute(query10, (id_enfermedad_t, id_medicina_t))
+            query11 = "DELETE FROM medicinas WHERE ID_medicina = %s"
             mycursor.execute(query11, (id_medicina_t, ))
             # Confirmar los cambios realizados en la base de datos
             mydbd.commit()
@@ -684,7 +700,7 @@ def connect():
     global mydbd
     global mycursor
     mydbd= mysql.connector.connect(host="127.0.0.1", user="root", password="aPERRITOMAN12", database="mascotas")
-    mycursor= mydbd.cursor(buffered=True)
+    mycursor= mydbd.cursor(buffered=True) #asi no sale el error al parecer las consultas tienen que ser liberadas con close y usar este buffered
     print("Conexion exitosa :D")
 
 
