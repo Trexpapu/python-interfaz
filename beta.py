@@ -6,6 +6,11 @@ import os
 from sqlite3 import connect
 import os
 import mysql.connector
+import tkinter.font as tkFont
+from spellchecker import SpellChecker #libreria de auto corrector
+
+# Cargar el corrector ortográfico
+spell = SpellChecker(language="es")
 #color de la interfaz 
 customtkinter.set_appearance_mode("dark")
 customtkinter.set_default_color_theme("blue")
@@ -182,7 +187,7 @@ def openAskAnimalsAndSicks():
         screen_width = show_table_app.winfo_screenwidth()
         screen_height = show_table_app.winfo_screenheight()
         show_table_app.geometry(f"{screen_width}x{screen_height}+200+0")
-        buttonBack = tkinter.Button(master=show_table_app, text="Regresa", command=backToSicksAndAnimal)
+        buttonBack = tkinter.Button(master=show_table_app, text="Regresa",bg = "yellow", command=backToSicksAndAnimal)
         buttonBack.place(relx=0.05, rely=0.05, anchor=tkinter.CENTER)
 
         # Configurar estilo personalizado
@@ -301,7 +306,15 @@ def openAskAnimalsAndSicks():
 
     Ask_animals_and_sicks_App.mainloop()
 
+def adjust_column_width(table): #funcion para ajustar tabla 
+    for col in table["columns"]:
+        table.heading(col, text=col.title(), anchor=tkinter.CENTER)  # Reiniciar el texto del encabezado para obtener el ancho real
+        max_width = max((table.set(row, col) for row in table.get_children()), key=len)
+        col_width = max(100, tkFont.Font().measure(max_width))  # Ajustar un ancho mínimo
+        table.column(col, width=col_width)
+
 def openAskAllAnimals():
+    
     connect()
     AppMain.destroy()
     global Ask_all_animals_App
@@ -312,8 +325,7 @@ def openAskAllAnimals():
     screen_width = Ask_all_animals_App.winfo_screenwidth()
     screen_height = Ask_all_animals_App.winfo_screenheight()
     Ask_all_animals_App.geometry(f"{screen_width}x{screen_height}+200+0")
-    buttonBack = tkinter.Button(master=Ask_all_animals_App, text="Regresa", command=backMain4)
-    buttonBack.place(relx=0.05, rely=0.05, anchor=tkinter.CENTER)
+    
 
     # Configurar estilo personalizado
     style = ttk.Style()
@@ -338,7 +350,7 @@ def openAskAllAnimals():
     table.column("Medicinas", anchor="center")  # Alineación al centro
 
     # Agregar datos a la tabla
-    mycursor.execute("SELECT a.Animal, s.Sintomas, e.Enfermedad, m.Medicina FROM animales AS a JOIN sintomas AS s ON  a.ID_animal = s.ID_animal JOIN enfermedades AS e ON s.ID_enfermedad = e.ID_enfermedad JOIN medicinas AS m ON m.ID_medicina = e.ID_medicina ORDER BY a.Animal ASC")
+    mycursor.execute("SELECT a.Animal, s.Sintomas, e.Enfermedad, m.Medicina FROM animales AS a JOIN sintomas AS s ON  a.ID_animal = s.ID_animal JOIN enfermedades AS e ON s.ID_enfermedad = e.ID_enfermedad JOIN medicinas AS m ON m.ID_medicina = e.ID_medicina ORDER BY a.Animal DESC")
     for i in mycursor:
         table.insert("", 0, values=i)
     mycursor.close()
@@ -347,7 +359,20 @@ def openAskAllAnimals():
     # Aplicar estilo personalizado a la tabla
     table.configure(style="Custom.Treeview")
 
-    table.pack()
+    adjust_column_width(table)
+
+    # Crear barras de desplazamiento horizontal y vertical
+    h_scrollbar = ttk.Scrollbar(Ask_all_animals_App, orient=tkinter.HORIZONTAL, command=table.xview)
+    v_scrollbar = ttk.Scrollbar(Ask_all_animals_App, orient=tkinter.VERTICAL, command=table.yview)
+    table.configure(xscrollcommand=h_scrollbar.set, yscrollcommand=v_scrollbar.set)
+
+    # Ubicar las barras de desplazamiento
+    h_scrollbar.pack(side=tkinter.BOTTOM, fill=tkinter.X)
+    v_scrollbar.pack(side=tkinter.RIGHT, fill=tkinter.Y)
+
+    table.pack(expand=True, fill='both')
+    buttonBack = tkinter.Button(master=Ask_all_animals_App, text="Regresa", bg = "yellow", command=backMain4)
+    buttonBack.pack(side=tkinter.TOP, anchor=tkinter.NW, padx=10, pady=10)
 
     Ask_all_animals_App.mainloop()
 
@@ -575,8 +600,7 @@ def editData():
     screen_height = edit_data_App.winfo_screenheight()
     edit_data_App.geometry(f"{screen_width}x{screen_height}+200+0")
     edit_data_App.configure(background="#6C737E")  
-    buttonBack = tkinter.Button(master=edit_data_App, text="Regresa", command=backMain5)
-    buttonBack.place(relx=0.05, rely=0.05, anchor=tkinter.CENTER)
+    
 
      # Configurar estilo personalizado
     style = ttk.Style()
@@ -607,7 +631,7 @@ def editData():
 
     # Agregar datos a la tabla
     
-    mycursor.execute("SELECT a.Animal, s.Sintomas, e.Enfermedad, m.Medicina FROM animales AS a JOIN sintomas AS s ON  a.ID_animal = s.ID_animal JOIN enfermedades AS e ON s.ID_enfermedad = e.ID_enfermedad JOIN medicinas AS m ON m.ID_medicina = e.ID_medicina ORDER BY a.Animal ASC")
+    mycursor.execute("SELECT a.Animal, s.Sintomas, e.Enfermedad, m.Medicina FROM animales AS a JOIN sintomas AS s ON  a.ID_animal = s.ID_animal JOIN enfermedades AS e ON s.ID_enfermedad = e.ID_enfermedad JOIN medicinas AS m ON m.ID_medicina = e.ID_medicina ORDER BY a.Animal DESC")
     for i in mycursor:
         table.insert("", 0, values=i)
        
@@ -615,21 +639,241 @@ def editData():
     # Aplicar estilo personalizado a la tabla
     table.configure(style="Custom.Treeview")
 
-    table.pack()
+    adjust_column_width(table)
+
+    # Crear barras de desplazamiento horizontal y vertical
+    h_scrollbar = ttk.Scrollbar(edit_data_App, orient=tkinter.HORIZONTAL, command=table.xview)
+    v_scrollbar = ttk.Scrollbar(edit_data_App, orient=tkinter.VERTICAL, command=table.yview)
+    table.configure(xscrollcommand=h_scrollbar.set, yscrollcommand=v_scrollbar.set)
+
+    # Ubicar las barras de desplazamiento
+    h_scrollbar.pack(side=tkinter.BOTTOM, fill=tkinter.X)
+    v_scrollbar.pack(side=tkinter.RIGHT, fill=tkinter.Y)
+
+    table.pack(expand=True, fill='both')
+    buttonBack = tkinter.Button(master=edit_data_App, text="Regresa", bg = "yellow", command=backMain5)
+    buttonBack.pack(side=tkinter.TOP, anchor=tkinter.NW, padx=10, pady=10)
 
     edit_data_App.mainloop()
 
-def deleteDataF():
+def smartSearchF():
     AppMain.destroy()
-    global delete_data_App
-    delete_data_App = customtkinter.CTk()
-    delete_data_App.title("Borrando datos")
-    screen_width = delete_data_App.winfo_screenwidth()
-    screen_height = delete_data_App.winfo_screenheight()
-    delete_data_App.geometry(f"{screen_width}x{screen_height}+0+0")
-    buttonBack = customtkinter.CTkButton(master=delete_data_App, text="Regresa", command=backMain6)
+    global smartSearch_app
+    smartSearch_app = customtkinter.CTk()
+    smartSearch_app.title("Borrando datos")
+    screen_width = smartSearch_app.winfo_screenwidth()
+    screen_height = smartSearch_app.winfo_screenheight()
+    smartSearch_app.geometry(f"{screen_width}x{screen_height}+0+0")
+    buttonBack = customtkinter.CTkButton(master=smartSearch_app, text="Regresa", command=backMain6)
     buttonBack.place(relx=0.05, rely=0.05, anchor=tkinter.CENTER)
-    delete_data_App.mainloop()
+
+
+    animal = customtkinter.CTkLabel(master=smartSearch_app, text="Animal que busca:")
+    animal.place(relx=0.2, rely=0.2, anchor=tkinter.CENTER)
+    entry_animal = customtkinter.CTkEntry(master=smartSearch_app)
+    entry_animal.place(relx=0.4, rely=0.2, anchor=tkinter.CENTER)
+
+    sintomas = customtkinter.CTkLabel(master=smartSearch_app, text="Sintomas que presenta:")
+    sintomas.place(relx=0.2, rely=0.3, anchor=tkinter.CENTER)
+    entry_sintomas = customtkinter.CTkEntry(master=smartSearch_app)
+    entry_sintomas.place(relx=0.4, rely=0.3, anchor=tkinter.CENTER)
+
+    def smartSearchGO():
+        def showSmartTableYES():#mostrando tabla con los datos procesados
+            connect()
+            
+            global smartTableYES_app
+            smartTableYES_app = tkinter.Tk()
+            smartTableYES_app.title("posibles resultados")
+            smartTableYES_app.configure(background="#6C737E")  # Cambiar el fondo de la ventana
+
+            screen_width = smartTableYES_app.winfo_screenwidth()
+            screen_height = smartTableYES_app.winfo_screenheight()
+            smartTableYES_app.geometry(f"{screen_width}x{screen_height}+200+0")
+            
+
+            # Configurar estilo personalizado
+            style = ttk.Style()
+            style.configure("Custom.Treeview", background="#000000", foreground="#ffffff", fieldbackground="#1f497d")
+            style.configure("Custom.Treeview.Heading", background="#000000", foreground="#ffffff", font=("Arial", 10, "bold"))
+
+            # Cambiar el estilo predeterminado de ttk
+            style.theme_use("default")  # Puedes probar diferentes estilos (clam, alt, default, etc.)
+
+            table = ttk.Treeview(smartTableYES_app, columns=("Animales", "Sintomas", "Enfermedades", "Medicinas"), style="Custom.Treeview")
+
+            # Configurar encabezados de columna
+            table.heading("Animales", text="Animales", anchor="center")
+            table.heading("Sintomas", text="Sintomas", anchor="center")
+            table.heading("Enfermedades", text="Enfermedades", anchor="center")
+            table.heading("Medicinas", text="Medicinas", anchor="center")
+
+            # Configurar alineación de las columnas
+            table.column("Animales", anchor="center")  # Alineación al centro
+            table.column("Sintomas", anchor="center")  # Alineación al centro
+            table.column("Enfermedades", anchor="center")  # Alineación al centro
+            table.column("Medicinas", anchor="center")  # Alineación al centro
+
+            # Agregar datos a la tabla
+            query = """SELECT a.Animal, s.Sintomas, e.Enfermedad, m.Medicina FROM sintomas AS s
+                        JOIN animales AS a ON a.ID_animal = s.ID_animal
+                        JOIN enfermedades AS e ON s.ID_enfermedad = e.ID_enfermedad 
+                        JOIN medicinas AS m ON m.ID_medicina = e.ID_medicina
+                        WHERE SOUNDEX(s.Sintomas) = SOUNDEX(%s) and SOUNDEX(a.Animal) = SOUNDEX(%s)"""
+            mycursor.execute(query, (sintomas_corregido, animal_corregido))
+            for i in mycursor:
+                table.insert("", 0, values=i)
+            mycursor.close()
+            mydbd.close()
+
+            # Aplicar estilo personalizado a la tabla
+            table.configure(style="Custom.Treeview")
+
+            adjust_column_width(table)
+
+            # Crear barras de desplazamiento horizontal y vertical
+            h_scrollbar = ttk.Scrollbar(smartTableYES_app, orient=tkinter.HORIZONTAL, command=table.xview)
+            v_scrollbar = ttk.Scrollbar(smartTableYES_app, orient=tkinter.VERTICAL, command=table.yview)
+            table.configure(xscrollcommand=h_scrollbar.set, yscrollcommand=v_scrollbar.set)
+
+            # Ubicar las barras de desplazamiento
+            h_scrollbar.pack(side=tkinter.BOTTOM, fill=tkinter.X)
+            v_scrollbar.pack(side=tkinter.RIGHT, fill=tkinter.Y)
+
+            table.pack(expand=True, fill='both')
+            buttonBack = tkinter.Button(master=smartTableYES_app, text="Regresa", bg = "yellow", command=backMain7)
+            buttonBack.pack(side=tkinter.TOP, anchor=tkinter.NW, padx=10, pady=10)
+
+            smartTableYES_app.mainloop()
+            
+        def showSmartTableNO():#mostrando tabla con los datos procesesados
+            connect()
+            
+            global smartTableNO_app
+            smartTableNO_app = tkinter.Tk()
+            smartTableNO_app.title("posibles resultados")
+            smartTableNO_app.configure(background="#6C737E")  # Cambiar el fondo de la ventana
+
+            screen_width = smartTableNO_app.winfo_screenwidth()
+            screen_height = smartTableNO_app.winfo_screenheight()
+            smartTableNO_app.geometry(f"{screen_width}x{screen_height}+200+0")
+            
+
+            # Configurar estilo personalizado
+            style = ttk.Style()
+            style.configure("Custom.Treeview", background="#000000", foreground="#ffffff", fieldbackground="#1f497d")
+            style.configure("Custom.Treeview.Heading", background="#000000", foreground="#ffffff", font=("Arial", 10, "bold"))
+
+            # Cambiar el estilo predeterminado de ttk
+            style.theme_use("default")  # Puedes probar diferentes estilos (clam, alt, default, etc.)
+
+            table = ttk.Treeview(smartTableNO_app, columns=("Animales", "Sintomas", "Enfermedades", "Medicinas"), style="Custom.Treeview")
+
+            # Configurar encabezados de columna
+            table.heading("Animales", text="Animales", anchor="center")
+            table.heading("Sintomas", text="Sintomas", anchor="center")
+            table.heading("Enfermedades", text="Enfermedades", anchor="center")
+            table.heading("Medicinas", text="Medicinas", anchor="center")
+
+            # Configurar alineación de las columnas
+            table.column("Animales", anchor="center")  # Alineación al centro
+            table.column("Sintomas", anchor="center")  # Alineación al centro
+            table.column("Enfermedades", anchor="center")  # Alineación al centro
+            table.column("Medicinas", anchor="center")  # Alineación al centro
+
+            # Agregar datos a la tabla
+            query = """SELECT a.Animal, s.Sintomas, e.Enfermedad, m.Medicina FROM sintomas AS s
+                        JOIN animales AS a ON a.ID_animal = s.ID_animal
+                        JOIN enfermedades AS e ON s.ID_enfermedad = e.ID_enfermedad 
+                        JOIN medicinas AS m ON m.ID_medicina = e.ID_medicina
+                        WHERE SOUNDEX(s.Sintomas) = SOUNDEX(%s) and SOUNDEX(a.Animal) = SOUNDEX(%s)"""
+            mycursor.execute(query, (sintomas, animal))
+            for i in mycursor:
+                table.insert("", 0, values=i)
+            mycursor.close()
+            mydbd.close()
+
+            # Aplicar estilo personalizado a la tabla
+            table.configure(style="Custom.Treeview")
+
+            adjust_column_width(table)
+
+            # Crear barras de desplazamiento horizontal y vertical
+            h_scrollbar = ttk.Scrollbar(smartTableNO_app, orient=tkinter.HORIZONTAL, command=table.xview)
+            v_scrollbar = ttk.Scrollbar(smartTableNO_app, orient=tkinter.VERTICAL, command=table.yview)
+            table.configure(xscrollcommand=h_scrollbar.set, yscrollcommand=v_scrollbar.set)
+
+            # Ubicar las barras de desplazamiento
+            h_scrollbar.pack(side=tkinter.BOTTOM, fill=tkinter.X)
+            v_scrollbar.pack(side=tkinter.RIGHT, fill=tkinter.Y)
+
+            table.pack(expand=True, fill='both')
+            buttonBack = tkinter.Button(master=smartTableNO_app, text="Regresa", bg = "yellow", command=backMain8)
+            buttonBack.pack(side=tkinter.TOP, anchor=tkinter.NW, padx=10, pady=10)
+
+            smartTableNO_app.mainloop()
+        #codigo de busqueda 
+        animal = entry_animal.get().lower()
+        sintomas = entry_sintomas.get().lower()
+        if animal and sintomas: #lleno todos los campos
+            #hacemos el procesado del lenguaje 
+            #proceso de animal
+            animal_mal_escrito = animal
+
+            # Tokenizar el texto en palabras individuales
+            palabras = animal_mal_escrito.split()
+
+            # Obtener sugerencias de corrección para cada palabra
+            correcciones = {}
+            for palabra in palabras:
+                correccion = spell.correction(palabra)
+                if correccion != palabra:
+                    correcciones[palabra] = correccion
+
+            # Reemplazar las palabras corregidas en la oración original
+            animal_corregido = " ".join(correcciones.get(palabra, palabra) for palabra in palabras)
+            
+            #proceso de sintomas
+            
+            sintomas_mal_escrito = sintomas
+
+            # Tokenizar el texto en palabras individuales
+            palabras = sintomas_mal_escrito.split()
+
+            # Obtener sugerencias de corrección para cada palabra
+            correciones_sintomas = {}
+            for palabra in palabras:
+                correccion = spell.correction(palabra)
+                if correccion != palabra:
+                    correciones_sintomas[palabra] = correccion
+
+            # Reemplazar las palabras corregidas en la oración original
+            sintomas_corregido = " ".join(correciones_sintomas.get(palabra, palabra) for palabra in palabras)
+            
+            info = customtkinter.CTkLabel(master = smartSearch_app, text="AUTOCORRECTOR", bg_color="gray")
+            info.place(relx=0.4, rely=0.5, anchor=tkinter.CENTER)
+            info = customtkinter.CTkLabel(master = smartSearch_app, text=animal_corregido)
+            info.place(relx=0.4, rely=0.6, anchor=tkinter.CENTER)
+            info = customtkinter.CTkLabel(master = smartSearch_app, text=sintomas_corregido)
+            info.place(relx=0.4, rely=0.7, anchor=tkinter.CENTER)
+            autoCorrectButton = customtkinter.CTkButton(master=smartSearch_app, text="si quise decir estas palabras",fg_color="purple", command=showSmartTableYES)
+            autoCorrectButton.place(relx=0.5, rely=0.8, anchor=tkinter.CENTER)
+            autoCorrectButton = customtkinter.CTkButton(master=smartSearch_app, text="no quise decir estas palabras",fg_color="red", command=showSmartTableNO)
+            autoCorrectButton.place(relx=0.3, rely=0.8, anchor=tkinter.CENTER)
+
+
+
+            
+        else: #no lleno todos los campos
+            info = customtkinter.CTkLabel(master=smartSearch_app, text="Error no a llenado todos los campos")
+            info.place(relx=0.4, rely=0.6, anchor=tkinter.CENTER)
+            smartSearch_app.after(2000, lambda: info.destroy())
+
+        
+
+    searchButton = customtkinter.CTkButton(master=smartSearch_app, text="Buscar",fg_color="green", command=smartSearchGO)
+    searchButton.place(relx=0.6, rely=0.6, anchor=tkinter.CENTER)
+    smartSearch_app.mainloop()
 
 
 
@@ -655,11 +899,20 @@ def backMain5():
     edit_data_App.destroy()
     Main()
 def backMain6():
-    delete_data_App.destroy()
+    smartSearch_app.destroy()
+    Main()
+def backMain7():
+    smartSearch_app.destroy()
+    smartTableYES_app.destroy()
+    Main()
+def backMain8(): 
+    smartSearch_app.destroy()
+    smartTableNO_app.destroy()
     Main()
 def backToSicksAndAnimal():
     show_table_app.destroy()
     Main()
+
 def updateTable():
     edit_data_App.destroy()
     selectDataApp.destroy()
@@ -700,7 +953,7 @@ def Main():
     modifyData = customtkinter.CTkButton(master= AppMain, text = "Modificar o eliminar datos", fg_color="royalblue", image=EditImage, command=editData)
     modifyData.place(relx=0.45, rely=0.2, anchor=tkinter.CENTER)
 
-    smartSearch = customtkinter.CTkButton(master= AppMain, text = "Busqueda inteligente ", fg_color="orange", image=smartSearchImage, command= deleteDataF)
+    smartSearch = customtkinter.CTkButton(master= AppMain, text = "Busqueda inteligente ", fg_color="orange", image=smartSearchImage, command= smartSearchF)
     smartSearch.place(relx=0.45, rely=0.3, anchor=tkinter.CENTER)
     
     #imagen de fondo 
