@@ -8,6 +8,7 @@ import os
 import mysql.connector
 import tkinter.font as tkFont
 from spellchecker import SpellChecker #libreria de auto corrector
+from itertools import permutations #libreria para combinacion de palabras
 
 # Cargar el corrector ortográfico
 spell = SpellChecker(language="es")
@@ -714,17 +715,29 @@ def smartSearchF():
             table.column("Enfermedades", anchor="center")  # Alineación al centro
             table.column("Medicinas", anchor="center")  # Alineación al centro
 
-            # Agregar datos a la tabla
-            query = """SELECT a.Animal, s.Sintomas, e.Enfermedad, m.Medicina FROM sintomas AS s
-                        JOIN animales AS a ON a.ID_animal = s.ID_animal
-                        JOIN enfermedades AS e ON s.ID_enfermedad = e.ID_enfermedad 
-                        JOIN medicinas AS m ON m.ID_medicina = e.ID_medicina
-                        WHERE SOUNDEX(s.Sintomas) = SOUNDEX(%s) and SOUNDEX(a.Animal) = SOUNDEX(%s)"""
-            mycursor.execute(query, (sintomas_corregido, animal_corregido))
-            for i in mycursor:
-                table.insert("", 0, values=i)
+            # Utilizar un conjunto para almacenar los registros únicos encontrados de esta forma no se repetiran los campos en la tabla
+            registros_unicos = set()
+
+
+            #logica de combinacion de palabras 
+            sintomas_combinados = list(permutations(sintomas_corregido.split()))
+            for combinaciones in sintomas_combinados:
+                sintomas_combinados = "".join(combinaciones)
+
+                # Agregar datos a la tabla
+                query = """SELECT a.Animal, s.Sintomas, e.Enfermedad, m.Medicina FROM sintomas AS s
+                            JOIN animales AS a ON a.ID_animal = s.ID_animal
+                            JOIN enfermedades AS e ON s.ID_enfermedad = e.ID_enfermedad 
+                            JOIN medicinas AS m ON m.ID_medicina = e.ID_medicina
+                            WHERE SOUNDEX(s.Sintomas) = SOUNDEX(%s) and SOUNDEX(a.Animal) = SOUNDEX(%s)"""
+                mycursor.execute(query, (sintomas_combinados, animal_corregido))
+                # Agregar los resultados únicos al conjunto
+                registros_unicos.update(mycursor.fetchall())
             mycursor.close()
             mydbd.close()
+            for registro in registros_unicos: #aqui hacemos el insert en la tabla con los conjuntos de registros unicos        
+                table.insert("", 0, values=registro)
+            
 
             # Aplicar estilo personalizado a la tabla
             table.configure(style="Custom.Treeview")
@@ -781,17 +794,24 @@ def smartSearchF():
             table.column("Enfermedades", anchor="center")  # Alineación al centro
             table.column("Medicinas", anchor="center")  # Alineación al centro
 
-            # Agregar datos a la tabla
-            query = """SELECT a.Animal, s.Sintomas, e.Enfermedad, m.Medicina FROM sintomas AS s
-                        JOIN animales AS a ON a.ID_animal = s.ID_animal
-                        JOIN enfermedades AS e ON s.ID_enfermedad = e.ID_enfermedad 
-                        JOIN medicinas AS m ON m.ID_medicina = e.ID_medicina
-                        WHERE SOUNDEX(s.Sintomas) = SOUNDEX(%s) and SOUNDEX(a.Animal) = SOUNDEX(%s)"""
-            mycursor.execute(query, (sintomas, animal))
-            for i in mycursor:
-                table.insert("", 0, values=i)
+            registros_unicos = set()
+            sintomas_combinados = list(permutations(sintomas.split()))
+            for combinaciones in sintomas_combinados:
+                sintomas_combinados = "".join(combinaciones)
+
+                # Agregar datos a la tabla
+                query = """SELECT a.Animal, s.Sintomas, e.Enfermedad, m.Medicina FROM sintomas AS s
+                            JOIN animales AS a ON a.ID_animal = s.ID_animal
+                            JOIN enfermedades AS e ON s.ID_enfermedad = e.ID_enfermedad 
+                            JOIN medicinas AS m ON m.ID_medicina = e.ID_medicina
+                            WHERE SOUNDEX(s.Sintomas) = SOUNDEX(%s) and SOUNDEX(a.Animal) = SOUNDEX(%s)"""
+                mycursor.execute(query, (sintomas_combinados, animal))
+                registros_unicos.update(mycursor.fetchall())
             mycursor.close()
             mydbd.close()
+            for registro in registros_unicos:
+                table.insert("", 0, values=registro)
+            
 
             # Aplicar estilo personalizado a la tabla
             table.configure(style="Custom.Treeview")
@@ -806,8 +826,11 @@ def smartSearchF():
             # Ubicar las barras de desplazamiento
             h_scrollbar.pack(side=tkinter.BOTTOM, fill=tkinter.X)
             v_scrollbar.pack(side=tkinter.RIGHT, fill=tkinter.Y)
-
             table.pack(expand=True, fill='both')
+
+
+
+
             buttonBack = tkinter.Button(master=smartTableNO_app, text="Regresa", bg = "yellow", command=backMain8)
             buttonBack.pack(side=tkinter.TOP, anchor=tkinter.NW, padx=10, pady=10)
 
@@ -902,13 +925,9 @@ def backMain6():
     smartSearch_app.destroy()
     Main()
 def backMain7():
-    smartSearch_app.destroy()
     smartTableYES_app.destroy()
-    Main()
 def backMain8(): 
-    smartSearch_app.destroy()
     smartTableNO_app.destroy()
-    Main()
 def backToSicksAndAnimal():
     show_table_app.destroy()
     Main()
@@ -969,9 +988,10 @@ def connect():
     #parte de conexion a sql
     global mydbd
     global mycursor
-    mydbd= mysql.connector.connect(host="127.0.0.1", user="root", password="aPERRITOMAN12", database="mascotas")
+    mydbd= mysql.connector.connect(host="containers-us-west-187.railway.app",port=6120,  user="root", password="Ikpwk44PmhEhZ3M1CUjv", database="railway")
     mycursor= mydbd.cursor(buffered=True) #asi no sale el error al parecer las consultas tienen que ser liberadas con close y usar este buffered
-    print("Conexion exitosa :D")
+    #print("Conexion exitosa :D")
+
 
 
 Main()
