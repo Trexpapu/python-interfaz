@@ -988,7 +988,7 @@ def connect():
     #parte de conexion a sql
     global mydbd
     global mycursor
-    mydbd= mysql.connector.connect(host="containers-us-west-187.railway.app",port=6120,  user="root", password="Ikpwk44PmhEhZ3M1CUjv", database="railway")
+    mydbd= mysql.connector.connect(host="***",port=6120,  user="***", password="***", database="***")
     mycursor= mydbd.cursor(buffered=True) #asi no sale el error al parecer las consultas tienen que ser liberadas con close y usar este buffered
     #print("Conexion exitosa :D")
 
