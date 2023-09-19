@@ -1,7 +1,7 @@
 from sqlite3 import connect
 import os
 import mysql.connector
-mydbd= mysql.connector.connect(host="127.0.0.1", user="root", password="aPERRITOMAN12", database="mascotas")
+mydbd= mysql.connector.connect(host="*****", user="root", password="****", database="****")
 mycursor= mydbd.cursor()
 print("Conexion exitosa :D")
 
